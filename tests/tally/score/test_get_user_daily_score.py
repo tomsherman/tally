@@ -5,17 +5,7 @@ from tally.actions.score.user_score import (
     get_user_daily_score,
 )
 from tally.actions.score.user_active_time import UserActiveTime
-from tests.tally.mocks.mock_team import create_team
-from tests.tally.mocks.mock_user import create_user
-
-
-@pytest.fixture
-def init_users_and_teams(mock_db):
-    team = create_team(id="team1", name="Test Team")
-    team.save(force_insert=True)
-    create_user(id="user1", name="Test User", team=team.id).save(force_insert=True)
-    create_user(id="user2", name="Test User 2", team=team.id).save(force_insert=True)
-    yield
+from tally.models.db import User
 
 
 class TestGetUserDailyScore:
@@ -387,6 +377,39 @@ class TestGetUserDailyScore:
         # All should have base points only (no 7-day streaks)
         for r in result:
             assert r.points == 5
+
+    def test_below_threshold_activity_does_not_extend_streak(
+        self, mock_db, init_users_and_teams
+    ):
+        """Test that activity below 30 min (0 points) does not extend streak; streak resets"""
+        from tally.models.db import User
+
+        user = User.get(User.id == "user1")
+        # Day 1: 30 min -> 5 points, streak=1
+        # Day 2: 20 min -> 0 points (below threshold), streak should reset to 0
+        # Day 3: 30 min -> 5 points, streak=1 again
+        user_active_times = [
+            UserActiveTime(
+                user=user, date=datetime.date(2023, 1, 1), active_seconds=1800
+            ),
+            UserActiveTime(
+                user=user, date=datetime.date(2023, 1, 2), active_seconds=20 * 60
+            ),  # 20 min = 0 points
+            UserActiveTime(
+                user=user, date=datetime.date(2023, 1, 3), active_seconds=1800
+            ),
+        ]
+
+        result = get_user_daily_score(user_active_times)
+
+        assert len(result) == 3
+        result_by_date = {r.date: r for r in result}
+        # Day 1: 5 points, streak 1
+        assert result_by_date[datetime.date(2023, 1, 1)].points == 5
+        # Day 2: 0 points (below threshold), streak resets so no bonus
+        assert result_by_date[datetime.date(2023, 1, 2)].points == 0
+        # Day 3: 5 points, streak 1 (restarted)
+        assert result_by_date[datetime.date(2023, 1, 3)].points == 5
 
     def test_gap_in_dates_breaks_streak(self, mock_db, init_users_and_teams):
         """Test that a gap in dates breaks the streak"""

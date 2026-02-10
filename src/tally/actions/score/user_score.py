@@ -42,7 +42,8 @@ def get_user_daily_score(
         points = calculate_user_points(active_time_entry.active_seconds)
         prev_day_date = get_previous_day(active_time_entry.date)
         prev_streak = user_streak_map.get((active_time_entry.user.id, prev_day_date), 0)
-        streak = prev_streak + 1 if active_time_entry.active_seconds > 0 else 0
+        # Use points > 0 for streak so "active" is consistent with team bonus (earned points)
+        streak = prev_streak + 1 if points > 0 else 0
         bonus_points = calculate_user_bonus_points(streak)
 
         user_streak_map[(active_time_entry.user.id, active_time_entry.date)] = streak

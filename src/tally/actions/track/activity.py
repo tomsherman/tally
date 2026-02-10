@@ -74,7 +74,7 @@ def get_activities_from_feed(feed: FeedResponse) -> List[FeedActivity]:
 
 def map_feed_activity_to_activity(activity: FeedActivity) -> Activity:
     moving_seconds = get_moving_seconds_from_stats(activity.stats)
-    if not moving_seconds:
+    if moving_seconds is None:
         logger.debug(f"No moving time found for activity {activity.id}")
 
     return Activity(
@@ -105,7 +105,11 @@ def get_activities(
         )
         # comparing the updated_at timestamp means activities fetch before the
         # after_date but updated after the after_date are still fetched.
-        if not feed.pagination.hasMore or next_feed_timestamp < after_date.timestamp():
+        if (
+            not feed.pagination.hasMore
+            or next_feed_timestamp is None
+            or next_feed_timestamp < after_date.timestamp()
+        ):
             break
         cursor = next_feed_timestamp
 

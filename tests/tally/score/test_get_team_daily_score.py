@@ -2,35 +2,6 @@ import pytest
 from datetime import date
 from tally.actions.score.team_score import get_team_daily_score
 from tally.actions.score.user_score import UserDailyScore
-from tests.tally.mocks.mock_user import create_user
-from tests.tally.mocks.mock_team import create_team
-
-
-@pytest.fixture
-def init_teams_and_users(mock_db):
-    """Create test teams and users for database tests"""
-    # Create teams
-    team1 = create_team(id="team1", name="Team Alpha")
-    team1.save(force_insert=True)
-
-    team2 = create_team(id="team2", name="Team Beta")
-    team2.save(force_insert=True)
-
-    # Create users for team1
-    user1 = create_user(id="user1", name="Alice", team="team1")
-    user1.save(force_insert=True)
-
-    user2 = create_user(id="user2", name="Bob", team="team1")
-    user2.save(force_insert=True)
-
-    # Create users for team2
-    user3 = create_user(id="user3", name="Charlie", team="team2")
-    user3.save(force_insert=True)
-
-    user4 = create_user(id="user4", name="Diana", team="team2")
-    user4.save(force_insert=True)
-
-    yield
 
 
 class TestGetTeamDailyScore:
@@ -283,3 +254,25 @@ class TestGetTeamDailyScore:
         assert (
             total_points == expected_total
         ), f"Expected {expected_total}, got {total_points}"
+
+    def test_zero_point_user_withholds_team_bonus(self, mock_db, init_teams_and_users):
+        """Test that when one user has 0 points (e.g. below 30 min), team does not get bonus"""
+        from tally.models.db import User
+
+        user1 = User.get(User.id == "user1")
+        user2 = User.get(User.id == "user2")
+        users = [user1, user2]
+
+        # One user has points, one has 0 (e.g. logged 20 min)
+        user_daily_scores = [
+            UserDailyScore(user=user1, date=date(2023, 1, 15), points=10),
+            UserDailyScore(user=user2, date=date(2023, 1, 15), points=0),
+        ]
+
+        result = get_team_daily_score(user_daily_scores, users)
+
+        assert len(result) == 1
+        team_score = result[0]
+        # Only 1 user with points > 0, so no team bonus
+        total_points = team_score.get_points()
+        assert total_points == 10  # 10 + 0, no bonus

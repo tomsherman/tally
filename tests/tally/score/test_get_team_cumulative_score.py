@@ -2,39 +2,6 @@ import pytest
 from datetime import date
 from tally.actions.score.team_score import get_team_cumulative_score, TeamDailyScore
 from tally.actions.score.user_score import UserDailyScore
-from tests.tally.mocks.mock_user import create_user
-from tests.tally.mocks.mock_team import create_team
-
-
-@pytest.fixture
-def init_teams_and_users(mock_db):
-    """Create test teams and users for database tests"""
-    # Create teams
-    team1 = create_team(id="team1", name="Team Alpha")
-    team1.save(force_insert=True)
-
-    team2 = create_team(id="team2", name="Team Beta")
-    team2.save(force_insert=True)
-
-    team3 = create_team(id="team3", name="Team Gamma")
-    team3.save(force_insert=True)
-
-    # Create users for team1
-    user1 = create_user(id="user1", name="Alice", team="team1")
-    user1.save(force_insert=True)
-
-    user2 = create_user(id="user2", name="Bob", team="team1")
-    user2.save(force_insert=True)
-
-    # Create users for team2
-    user3 = create_user(id="user3", name="Charlie", team="team2")
-    user3.save(force_insert=True)
-
-    # Create user for team3 (team with no daily scores)
-    user4 = create_user(id="user4", name="Diana", team="team3")
-    user4.save(force_insert=True)
-
-    yield
 
 
 class TestGetTeamCumulativeScore:
@@ -274,6 +241,44 @@ class TestGetTeamCumulativeScore:
         assert result[1].points == 10  # 10 + 0 bonus
         assert result[2].team.id == "team3"
         assert result[2].points == 0
+
+    def test_teams_with_exactly_equal_points_stable_sort(
+        self, mock_db, init_teams_and_users
+    ):
+        """Test that two teams with exactly the same points get a stable sort order"""
+        from tally.models.db import User, Team
+
+        user1 = User.get(User.id == "user1")
+        user2 = User.get(User.id == "user2")
+        user3 = User.get(User.id == "user3")
+        team1 = Team.get(Team.id == "team1")
+        team2 = Team.get(Team.id == "team2")
+
+        users = [user1, user2, user3]
+
+        # Team1: 1 of 2 users active (10 pts) -> 10 total, no bonus
+        team1_day1 = TeamDailyScore(
+            team=team1, date=date(2023, 1, 15), users=[user1, user2]
+        )
+        team1_day1.add_user_score(
+            UserDailyScore(user=user1, date=date(2023, 1, 15), points=10)
+        )
+
+        # Team2: 1 of 1 user active (5 pts) -> 5 + 5 bonus = 10 total
+        team2_day1 = TeamDailyScore(team=team2, date=date(2023, 1, 15), users=[user3])
+        team2_day1.add_user_score(
+            UserDailyScore(user=user3, date=date(2023, 1, 15), points=5)
+        )
+
+        daily_scores = [team1_day1, team2_day1]
+        result = get_team_cumulative_score(daily_scores, users)
+
+        # Only team1 and team2 are in users, so result has 2 teams (both 10 pts)
+        assert len(result) == 2
+        assert result[0].points == 10
+        assert result[1].points == 10
+        team_ids = [result[0].team.id, result[1].team.id]
+        assert set(team_ids) == {"team1", "team2"}
 
     def test_empty_team_daily_scores_list(self, mock_db, init_teams_and_users):
         """Test edge case with empty team daily scores but users present"""

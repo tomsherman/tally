@@ -19,11 +19,11 @@ def calculate_user_points(active_seconds: int) -> int:
 
     active_minutes = active_seconds / one_minute_in_seconds
     # Base points: 1 point per hour
-    points = active_minutes // one_hour_in_minutes
+    points = int(active_minutes // one_hour_in_minutes)
     # Additional points based on time thresholds
-    for point_map in point_map:
-        if active_minutes >= point_map["minutes"]:
-            points += point_map["points"]
+    for threshold in point_map:
+        if active_minutes >= threshold["minutes"]:
+            points += threshold["points"]
     return points
 
 

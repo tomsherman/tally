@@ -5,19 +5,13 @@ from tally.actions.score.user_active_time import (
     get_user_active_time,
 )
 from tally.utils.activity import MOVING_TIME_ACTIVITY_TYPES
-from tally.actions.score.score_config import ScoreConfig
+from tally.actions.score.score_config import (
+    ScoreConfig,
+    DEFAULT_MAX_DAILY_ACTIVE_SECONDS,
+)
 from tests.tally.mocks.mock_team import create_team
 from tests.tally.mocks.mock_user import create_user
 from tests.tally.mocks.mock_activity import create_activity
-
-
-@pytest.fixture
-def init_users_and_teams(mock_db):
-    team = create_team(id="team1", name="Test Team")
-    team.save(force_insert=True)
-    create_user(id="user1", name="Test User", team=team.id).save(force_insert=True)
-    create_user(id="user2", name="Test User 2", team=team.id).save(force_insert=True)
-    yield
 
 
 class TestGetUserActiveTime:
@@ -504,3 +498,163 @@ class TestGetUserActiveTime:
 
         assert result[1].date == datetime.date(2023, 1, 31)
         assert result[1].active_seconds == 2400
+
+    def test_daily_active_seconds_capped_at_default(
+        self, mock_db, init_users_and_teams
+    ):
+        """Test that active seconds are capped at the default max (6 hours)"""
+        eight_hours = 8 * 60 * 60
+        activity = create_activity(
+            id="activity1",
+            user="user1",
+            start_time="2023-01-15T06:00:00+00:00",
+            elapsed_seconds=eight_hours,
+            workout_type="Other",
+        )
+        activity.save(force_insert=True)
+        config = ScoreConfig(
+            score_start_date=datetime.date(2023, 1, 1),
+            score_end_date=datetime.date(2023, 1, 31),
+            time_zone="UTC",
+        )
+
+        result = get_user_active_time([activity], config)
+
+        assert len(result) == 1
+        assert result[0].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS
+
+    def test_daily_cap_applied_after_accumulating_multiple_activities(
+        self, mock_db, init_users_and_teams
+    ):
+        """Test that the cap is applied after summing all activities for a day"""
+        four_hours = 4 * 60 * 60
+        activity1 = create_activity(
+            id="activity1",
+            user="user1",
+            start_time="2023-01-15T08:00:00+00:00",
+            elapsed_seconds=four_hours,
+            workout_type="Other",
+        )
+        activity1.save(force_insert=True)
+        activity2 = create_activity(
+            id="activity2",
+            user="user1",
+            start_time="2023-01-15T16:00:00+00:00",
+            elapsed_seconds=four_hours,
+            workout_type="Other",
+        )
+        activity2.save(force_insert=True)
+        config = ScoreConfig(
+            score_start_date=datetime.date(2023, 1, 1),
+            score_end_date=datetime.date(2023, 1, 31),
+            time_zone="UTC",
+        )
+
+        result = get_user_active_time([activity1, activity2], config)
+
+        assert len(result) == 1
+        # 4h + 4h = 8h, capped to 6h
+        assert result[0].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS
+
+    def test_daily_cap_not_applied_when_under_limit(
+        self, mock_db, init_users_and_teams
+    ):
+        """Test that active seconds below the cap are not modified"""
+        five_hours = 5 * 60 * 60
+        activity = create_activity(
+            id="activity1",
+            user="user1",
+            start_time="2023-01-15T10:00:00+00:00",
+            elapsed_seconds=five_hours,
+            workout_type="Other",
+        )
+        activity.save(force_insert=True)
+        config = ScoreConfig(
+            score_start_date=datetime.date(2023, 1, 1),
+            score_end_date=datetime.date(2023, 1, 31),
+            time_zone="UTC",
+        )
+
+        result = get_user_active_time([activity], config)
+
+        assert len(result) == 1
+        assert result[0].active_seconds == five_hours
+
+    def test_daily_cap_with_custom_value(self, mock_db, init_users_and_teams):
+        """Test that a custom max_daily_active_seconds value is respected"""
+        two_hours = 2 * 60 * 60
+        three_hours = 3 * 60 * 60
+        activity = create_activity(
+            id="activity1",
+            user="user1",
+            start_time="2023-01-15T10:00:00+00:00",
+            elapsed_seconds=three_hours,
+            workout_type="Other",
+        )
+        activity.save(force_insert=True)
+        config = ScoreConfig(
+            score_start_date=datetime.date(2023, 1, 1),
+            score_end_date=datetime.date(2023, 1, 31),
+            time_zone="UTC",
+            max_daily_active_seconds=two_hours,
+        )
+
+        result = get_user_active_time([activity], config)
+
+        assert len(result) == 1
+        assert result[0].active_seconds == two_hours
+
+    def test_daily_cap_disabled_when_none(self, mock_db, init_users_and_teams):
+        """Test that setting max_daily_active_seconds to None disables the cap"""
+        ten_hours = 10 * 60 * 60
+        activity = create_activity(
+            id="activity1",
+            user="user1",
+            start_time="2023-01-15T06:00:00+00:00",
+            elapsed_seconds=ten_hours,
+            workout_type="Other",
+        )
+        activity.save(force_insert=True)
+        config = ScoreConfig(
+            score_start_date=datetime.date(2023, 1, 1),
+            score_end_date=datetime.date(2023, 1, 31),
+            time_zone="UTC",
+            max_daily_active_seconds=None,
+        )
+
+        result = get_user_active_time([activity], config)
+
+        assert len(result) == 1
+        assert result[0].active_seconds == ten_hours
+
+    def test_daily_cap_applied_per_user(self, mock_db, init_users_and_teams):
+        """Test that the cap is applied independently per user"""
+        eight_hours = 8 * 60 * 60
+        activity1 = create_activity(
+            id="activity1",
+            user="user1",
+            start_time="2023-01-15T06:00:00+00:00",
+            elapsed_seconds=eight_hours,
+            workout_type="Other",
+        )
+        activity1.save(force_insert=True)
+        activity2 = create_activity(
+            id="activity2",
+            user="user2",
+            start_time="2023-01-15T06:00:00+00:00",
+            elapsed_seconds=eight_hours,
+            workout_type="Other",
+        )
+        activity2.save(force_insert=True)
+        config = ScoreConfig(
+            score_start_date=datetime.date(2023, 1, 1),
+            score_end_date=datetime.date(2023, 1, 31),
+            time_zone="UTC",
+        )
+
+        result = get_user_active_time([activity1, activity2], config)
+
+        assert len(result) == 2
+        result.sort(key=lambda x: x.user.id)
+        assert result[0].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS
+        assert result[1].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS

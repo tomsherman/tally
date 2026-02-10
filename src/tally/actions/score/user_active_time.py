@@ -52,4 +52,12 @@ def get_user_active_time(
         active_time.add_activity(activity)
         active_time_map[key] = active_time
 
-    return list(active_time_map.values())
+    result = list(active_time_map.values())
+
+    if config.max_daily_active_seconds is not None:
+        for active_time in result:
+            active_time.active_seconds = min(
+                active_time.active_seconds, config.max_daily_active_seconds
+            )
+
+    return result

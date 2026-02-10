@@ -15,7 +15,7 @@ For users, the points are calculated based on the total active time from all act
 | ≥ 1 hour     | 7 points                          |
 | ≥ 2 hours    | 8 points + 1 point per hour after |
 
-#### Bonus Points
+#### Bonus Points 
 
 An additional 5 points are awarded to the user for each 7 consecutive days where the user is active (i.e. has received more than 0 points). The consecutive days cannot overlap, so at most 5 bonus points per week can be awarded to a user.
 

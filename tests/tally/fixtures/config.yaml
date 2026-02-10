@@ -1,0 +1,13 @@
+max_daily_active_seconds: 21600  # 6 hours
+base_points_per_hour: 1
+point_thresholds:
+  - minutes: 30
+    points: 5
+  - minutes: 60
+    points: 2
+  - minutes: 120
+    points: 1
+user_streak_bonus_points: 5
+user_streak_interval_days: 7
+team_bonus_points: 5
+strava_request_interval_seconds: 5

@@ -1,10 +1,4 @@
-from tally.config import (
-    BASE_POINTS_PER_HOUR,
-    POINT_THRESHOLDS,
-    TEAM_BONUS_POINTS,
-    USER_STREAK_BONUS_POINTS,
-    USER_STREAK_INTERVAL_DAYS,
-)
+import tally.config
 
 
 def calculate_user_points(active_seconds: int) -> int:
@@ -22,8 +16,10 @@ def calculate_user_points(active_seconds: int) -> int:
     one_hour_in_minutes = 60
 
     active_minutes = active_seconds / one_minute_in_seconds
-    points = int(active_minutes // one_hour_in_minutes) * BASE_POINTS_PER_HOUR
-    for threshold in POINT_THRESHOLDS:
+    points = (
+        int(active_minutes // one_hour_in_minutes) * tally.config.BASE_POINTS_PER_HOUR
+    )
+    for threshold in tally.config.POINT_THRESHOLDS:
         if active_minutes >= threshold["minutes"]:
             points += threshold["points"]
     return points
@@ -38,8 +34,8 @@ def calculate_user_bonus_points(streak: int) -> int:
     :return: Bonus points for the user.
     """
     return (
-        USER_STREAK_BONUS_POINTS
-        if streak > 0 and streak % USER_STREAK_INTERVAL_DAYS == 0
+        tally.config.USER_STREAK_BONUS_POINTS
+        if streak > 0 and streak % tally.config.USER_STREAK_INTERVAL_DAYS == 0
         else 0
     )
 
@@ -55,7 +51,7 @@ def calculate_team_bonus_points(active_user_count: int, total_user_count: int) -
     :return: Bonus points for the team.
     """
     return (
-        TEAM_BONUS_POINTS
+        tally.config.TEAM_BONUS_POINTS
         if total_user_count > 0 and active_user_count == total_user_count
         else 0
     )

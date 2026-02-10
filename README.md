@@ -29,24 +29,21 @@ A team is awareded 5 additional points for a given day if all users in the team 
 
 ## Configuration
 
-Scoring and tracking behaviour can be adjusted by editing the central configuration file:
+Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and pass it with `--config` every time you run the tool (both from source and when using the executable).
 
-- **Source install / development:** `src/tally/config.py`
-- **Installed package:** the `config.py` module inside the installed `tally` package (location depends on your Python environment)
+1. Copy [config.example.yaml](./config.example.yaml) to `config.yaml`.
+2. Edit `config.yaml` to set scoring rules, daily cap, and Strava rate limiting.
+3. Run the tool with: `tally --config config.yaml` (or `tally --config /path/to/your/config.yaml`).
 
-Options in `config.py`:
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `MAX_DAILY_ACTIVE_SECONDS` | `6 * 60 * 60` (6 hours) | Maximum active time per person per day that counts for points. Set to `None` to disable the cap. |
-| `BASE_POINTS_PER_HOUR` | `1` | Base points per full hour of active time. |
-| `POINT_THRESHOLDS` | 30 min → 5 pts, 60 min → 2 pts, 120 min → 1 pt | Bonus points at each time threshold. |
-| `USER_STREAK_BONUS_POINTS` | `5` | Bonus points for each completed streak interval. |
-| `USER_STREAK_INTERVAL_DAYS` | `7` | Consecutive days required for a streak bonus. |
-| `TEAM_BONUS_POINTS` | `5` | Bonus points when all team members are active that day. |
-| `STRAVA_REQUEST_INTERVAL_SECONDS` | `5` | Delay between Strava API requests (rate limiting). |
-
-After changing `config.py`, restart the tool for changes to take effect.
+| Key | Description |
+|-----|-------------|
+| `max_daily_active_seconds` | Max active seconds per person per day that count for points. Omit or set to `null` to disable the cap. Example: `21600` (6 hours). |
+| `base_points_per_hour` | Base points per full hour of active time. |
+| `point_thresholds` | List of `{minutes, points}` for bonus points at each threshold (e.g. 30 min → 5 pts). |
+| `user_streak_bonus_points` | Bonus points for each completed streak interval. |
+| `user_streak_interval_days` | Consecutive days required for a streak bonus. |
+| `team_bonus_points` | Bonus points when all team members are active that day. |
+| `strava_request_interval_seconds` | Delay between Strava API requests (rate limiting). |
 
 ## Installation
 
@@ -55,7 +52,10 @@ After changing `config.py`, restart the tool for changes to take effect.
     1. MacOS: click on the `tally-macos-<version>.zip` file
     2. Windows: click on the `tally-windows-<version>.zip` file
 3. Unzip the contents `.zip` file into a folder.
-4. Click on the `tally` executable to start the tool.
+4. Copy `config.example.yaml` to `config.yaml` in the same folder (or elsewhere) and edit as needed.
+5. Run the executable with a path to your config file, for example:
+   - MacOS/Linux: `./tally --config config.yaml`
+   - Windows: `tally.exe --config config.yaml`
 
 ## How to use
 
@@ -70,7 +70,7 @@ After changing `config.py`, restart the tool for changes to take effect.
 | Team 2    | 234954  | Jane Doe  | https://www.strava.com/athletes/32543 |
 
 5. Download the spreadsheet as a CSV file.
-6. Run `tally` to start the tool.
+6. Run `tally --config config.yaml` to start the tool (use the path to your config file).
 7. When prompted, select the `Configure challenge` option to configure a new challenge.
 
 ```
@@ -91,7 +91,7 @@ After changing `config.py`, restart the tool for changes to take effect.
 
 ### Reviewing and Updating Activities
 
-1. To view the list of tracked activities for all users, run `tally` and select the `Export activity data` option.
+1. To view the list of tracked activities for all users, run `tally --config config.yaml` and select the `Export activity data` option.
 2. Upload the exported CSV file to a shared spreadsheet to users can review the activities.
 3. Create a form to allow users to submit updates to their activities. The form should contain fields for the columns `link`, `user_link`, `title`, `workout_type`, `date`, and `active_time`. Users should copy over values from the exported activity list while filling the form. Note that date must be in the format `YYYY-MM-DD` and active time must be in the format similar to `1h 15m` or `45m`.
 4. When activity updates have been submitted, the form should output a spreadsheet similar to the following:
@@ -102,7 +102,7 @@ After changing `config.py`, restart the tool for changes to take effect.
 | https://www.strava.com/activities/534834912 | https://www.strava.com/athletes/45343 | Night Run | Run | 2025-07-02 | 45m |
 
 5. Download the spreadsheet as a CSV file.
-6. Run `tally` to start the tool.
+6. Run `tally --config config.yaml` to start the tool.
 7. When prompted, select the `Import activity data` option to import the activity updates.
 8. When prompted, select the CSV file that was downloaded in the previous step.
 
@@ -131,7 +131,7 @@ After changing `config.py`, restart the tool for changes to take effect.
 4. Install the dependencies with `pip install -r requirements.txt`
 5. Create an [editable install](https://setuptools.pypa.io/en/latest/userguide/development_mode.html) of the package with `pip install -e .`
 6. Install [pre-commit](https://pre-commit.com/) hooks with `pre-commit install`
-7. Run the tool with `python -m tally`
+7. Run the tool with `python -m tally --config config.yaml` (create `config.yaml` from `config.example.yaml` if needed)
 
 ### Installing from Source
 
@@ -140,7 +140,7 @@ After changing `config.py`, restart the tool for changes to take effect.
     1. MacOS: Run `chmod +x scripts/install.sh && scripts/install.sh`
     2. Windows: Run `scripts\install.ps1`
         1. If you get an error `install.ps1 cannot be loaded because running scripts is disabled on this system`, run a PowerShell terminal as an administrator and enter `Set-ExecutionPolicy RemoteSigned`
-3. Run `tally` to start the tool
+3. Run `tally --config config.yaml` to start the tool (copy and edit `config.example.yaml` to create `config.yaml`)
 
 ### Building an Executable
 
@@ -169,9 +169,10 @@ $ python -m pytest <path_to_test_file>::<test_class>::<test_method>
 
 ```
 tally/
+├── config.example.yaml                  # Example config; copy to config.yaml and pass with --config
 ├── src/
 │   ├── tally/
-│   │   ├── config.py                    # Central configuration (scoring, daily cap, Strava rate limit)
+│   │   ├── config.py                    # Loads configuration from config.yaml (no compiled defaults)
 │   │   ├── actions/                     # Each subdirectory represents a different operation performed by the tool
 │   │   │   ├── export/
 │   │   │   ├── initialize/

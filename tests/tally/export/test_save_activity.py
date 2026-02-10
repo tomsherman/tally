@@ -1,4 +1,7 @@
 import pytest
+
+pytest.importorskip("tkinter")  # save_activity uses tkinter for file dialogs
+
 import csv
 import tempfile
 import os

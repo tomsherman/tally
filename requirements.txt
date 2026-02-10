@@ -5,6 +5,7 @@ numpy==2.3.1
 peewee==3.18.1
 pre_commit==4.3.0
 pydantic==2.12.5
+pyyaml>=6.0
 pyinstaller==6.18.0
 pytest==8.4.1
 pytest-cov==7.0.0

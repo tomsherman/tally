@@ -5,10 +5,8 @@ from tally.actions.score.user_active_time import (
     get_user_active_time,
 )
 from tally.utils.activity import MOVING_TIME_ACTIVITY_TYPES
-from tally.actions.score.score_config import (
-    ScoreConfig,
-    DEFAULT_MAX_DAILY_ACTIVE_SECONDS,
-)
+from tally.config import MAX_DAILY_ACTIVE_SECONDS
+from tally.actions.score.score_config import ScoreConfig
 from tests.tally.mocks.mock_team import create_team
 from tests.tally.mocks.mock_user import create_user
 from tests.tally.mocks.mock_activity import create_activity
@@ -521,7 +519,7 @@ class TestGetUserActiveTime:
         result = get_user_active_time([activity], config)
 
         assert len(result) == 1
-        assert result[0].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS
+        assert result[0].active_seconds == MAX_DAILY_ACTIVE_SECONDS
 
     def test_daily_cap_applied_after_accumulating_multiple_activities(
         self, mock_db, init_users_and_teams
@@ -554,7 +552,7 @@ class TestGetUserActiveTime:
 
         assert len(result) == 1
         # 4h + 4h = 8h, capped to 6h
-        assert result[0].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS
+        assert result[0].active_seconds == MAX_DAILY_ACTIVE_SECONDS
 
     def test_daily_cap_not_applied_when_under_limit(
         self, mock_db, init_users_and_teams
@@ -656,5 +654,5 @@ class TestGetUserActiveTime:
 
         assert len(result) == 2
         result.sort(key=lambda x: x.user.id)
-        assert result[0].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS
-        assert result[1].active_seconds == DEFAULT_MAX_DAILY_ACTIVE_SECONDS
+        assert result[0].active_seconds == MAX_DAILY_ACTIVE_SECONDS
+        assert result[1].active_seconds == MAX_DAILY_ACTIVE_SECONDS

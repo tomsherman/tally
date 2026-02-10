@@ -27,6 +27,27 @@ The team points for a given day are calculated by summing the points of all user
 
 A team is awareded 5 additional points for a given day if all users in the team are active for that day (i.e. have received more than 0 points).
 
+## Configuration
+
+Scoring and tracking behaviour can be adjusted by editing the central configuration file:
+
+- **Source install / development:** `src/tally/config.py`
+- **Installed package:** the `config.py` module inside the installed `tally` package (location depends on your Python environment)
+
+Options in `config.py`:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `MAX_DAILY_ACTIVE_SECONDS` | `6 * 60 * 60` (6 hours) | Maximum active time per person per day that counts for points. Set to `None` to disable the cap. |
+| `BASE_POINTS_PER_HOUR` | `1` | Base points per full hour of active time. |
+| `POINT_THRESHOLDS` | 30 min → 5 pts, 60 min → 2 pts, 120 min → 1 pt | Bonus points at each time threshold. |
+| `USER_STREAK_BONUS_POINTS` | `5` | Bonus points for each completed streak interval. |
+| `USER_STREAK_INTERVAL_DAYS` | `7` | Consecutive days required for a streak bonus. |
+| `TEAM_BONUS_POINTS` | `5` | Bonus points when all team members are active that day. |
+| `STRAVA_REQUEST_INTERVAL_SECONDS` | `5` | Delay between Strava API requests (rate limiting). |
+
+After changing `config.py`, restart the tool for changes to take effect.
+
 ## Installation
 
 1. Go to the [releases](https://github.com/titanjack36/tally/releases) page.
@@ -150,6 +171,7 @@ $ python -m pytest <path_to_test_file>::<test_class>::<test_method>
 tally/
 ├── src/
 │   ├── tally/
+│   │   ├── config.py                    # Central configuration (scoring, daily cap, Strava rate limit)
 │   │   ├── actions/                     # Each subdirectory represents a different operation performed by the tool
 │   │   │   ├── export/
 │   │   │   ├── initialize/

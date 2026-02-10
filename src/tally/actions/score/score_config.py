@@ -1,7 +1,6 @@
 import datetime
 
-
-DEFAULT_MAX_DAILY_ACTIVE_SECONDS = 6 * 60 * 60  # 6 hours
+from tally.config import MAX_DAILY_ACTIVE_SECONDS
 
 
 class ScoreConfig:
@@ -10,7 +9,7 @@ class ScoreConfig:
         score_start_date: datetime.date,
         score_end_date: datetime.date,
         time_zone: str,
-        max_daily_active_seconds: int | None = DEFAULT_MAX_DAILY_ACTIVE_SECONDS,
+        max_daily_active_seconds: int | None = MAX_DAILY_ACTIVE_SECONDS,
     ):
         self.score_start_date = score_start_date
         self.score_end_date = score_end_date

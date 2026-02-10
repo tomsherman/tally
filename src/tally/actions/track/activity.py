@@ -4,6 +4,7 @@ from typing import List
 import re
 import time
 
+from tally.config import STRAVA_REQUEST_INTERVAL_SECONDS
 from tally.services.strava import StravaService
 from tally.models.db import Activity, Team
 from tally.models.validation.club_feed import (
@@ -93,10 +94,9 @@ def get_activities(
 ) -> List[Activity]:
     feed_activities: List[FeedActivity] = []
     cursor = None
-    request_interval_seconds = 5
     while True:
         # delay request to avoid rate limiting
-        time.sleep(request_interval_seconds)
+        time.sleep(STRAVA_REQUEST_INTERVAL_SECONDS)
 
         feed = strava_service.get_club_feed(team.id, cursor)
         feed_activities.extend(get_activities_from_feed(feed))

@@ -1,3 +1,6 @@
+import datetime
+from typing import List
+
 from tally.models.db import Activity
 
 
@@ -44,6 +47,36 @@ def get_activity_active_seconds(activity: Activity) -> int:
     ):
         return activity.moving_seconds
     return activity.elapsed_seconds
+
+
+def merge_activity_intervals(activities: List[Activity]) -> int:
+    """
+    Return total wall‑clock seconds covered by merging all activities'
+    elapsed‑time intervals.
+
+    Each activity occupies [start_time, start_time + elapsed_seconds).
+    Overlapping intervals are merged so the shared portion is only counted once.
+    """
+    if not activities:
+        return 0
+
+    intervals = []
+    for a in activities:
+        start = datetime.datetime.fromisoformat(a.start_time)
+        end = start + datetime.timedelta(seconds=a.elapsed_seconds)
+        intervals.append((start, end))
+    intervals.sort()
+
+    merged_seconds = 0
+    current_start, current_end = intervals[0]
+    for start, end in intervals[1:]:
+        if start < current_end:  # overlap
+            current_end = max(current_end, end)
+        else:
+            merged_seconds += int((current_end - current_start).total_seconds())
+            current_start, current_end = start, end
+    merged_seconds += int((current_end - current_start).total_seconds())
+    return merged_seconds
 
 
 def get_activity_link(activity: Activity) -> str:

@@ -93,15 +93,20 @@ def prompt_config(existing_config: Config | None) -> Config | None:
         return None
 
     print("Scoring and tracking (press Enter for defaults):")
-    max_daily = _int_prompt(
-        "  Max active seconds per person per day (21600 = 6h, 0 = no cap)",
-        21600,
-        (
-            getattr(existing_config, "max_daily_active_seconds", None)
-            if existing_config
-            else None
-        ),
+    existing_max_seconds = (
+        getattr(existing_config, "max_daily_active_seconds", None)
+        if existing_config
+        else None
     )
+    existing_max_minutes = (
+        existing_max_seconds // 60 if existing_max_seconds is not None else None
+    )
+    max_daily_minutes = _int_prompt(
+        "  Max active minutes per person per day (360 = 6h, 0 = no cap)",
+        360,
+        existing_max_minutes,
+    )
+    max_daily = max_daily_minutes * 60 if max_daily_minutes else 0
     base_points = _int_prompt(
         "  Base points per hour",
         1,

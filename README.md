@@ -8,7 +8,7 @@ All point values below are the **defaults**. They can be changed during "Configu
 
 ### Daily Active Time Cap
 
-Each user's total active seconds per day can be capped (default: 6 hours / 21600 seconds). Time beyond the cap is ignored for scoring. Set to 0 during initialization to disable the cap.
+Each user's total active time per day can be capped (default: 360 minutes / 6 hours). Time beyond the cap is ignored for scoring. Set to 0 during initialization to disable the cap.
 
 ### User Points
 
@@ -43,7 +43,7 @@ Scoring and tracking options are set during **Configure challenge** (initializat
 
 | Option | Description |
 |--------|-------------|
-| Max daily active seconds | Cap on active seconds per person per day that count for points. Enter 0 for no cap (e.g. 21600 = 6 hours). |
+| Max daily active minutes | Cap on active minutes per person per day that count for points. Enter 0 for no cap (default: 360 = 6 hours). |
 | Base points per hour | Base points per full hour of active time. |
 | Point thresholds | Bonus points at time thresholds (e.g. 30 min → 5 pts); defined in code, not prompted. |
 | User streak bonus / interval | Bonus points for each completed streak of consecutive active days, and the number of days in that interval. |
@@ -88,7 +88,7 @@ Scoring and tracking options are set during **Configure challenge** (initializat
    Exit
 ```
 
-8. Enter the name, start date, time zone, and scoring/tracking options for the challenge according to the prompts. Scoring options include the daily active time cap, base points per hour, streak bonus, team bonus, and Strava request interval (press Enter to accept defaults).
+8. Enter the name, start date, time zone, and scoring/tracking options for the challenge according to the prompts. Scoring options include the daily active time cap (in minutes), base points per hour, streak bonus, team bonus, and Strava request interval (press Enter to accept defaults).
 9. When asked to select a user list, choose the CSV file that was downloaded in the previous step. Ensure that the selected CSV file is filled correctly. Partially filled rows will be skipped.
 10. Next, select the `Track activities` option to track new activities since the start of the challenge. It is recommended to run this command at least once a week since activities older than about 2 weeks may no longer appear in the Strava club feed. Each run also **reconciles** the last 5 days: activities that were updated on Strava are overwritten in the database, and activities that were deleted on Strava are removed from the database.
 11. After activities have been tracked, select the `Calculate scores` option to calculate the team scores for the challenge. When prompted for the scoring end date, it is recommended to use yesterday's date since the scoring for today may be incomplete.

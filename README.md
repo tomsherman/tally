@@ -4,46 +4,51 @@ Tally is a command line tool for tracking team scores during a fitness challenge
 
 ## Point System
 
+All point values below are the **defaults**. They can be changed during "Configure challenge" (see [Configuration](#configuration)).
+
+### Daily Active Time Cap
+
+Each user's total active seconds per day can be capped (default: 6 hours / 21600 seconds). Time beyond the cap is ignored for scoring. Set to 0 during initialization to disable the cap.
+
 ### User Points
 
-For users, the points are calculated based on the total active time from all activities on a given day.
+For users, points are calculated based on the (capped) total active time from all activities on a given day.
 
-| Active Time  | Points Awarded                    |
-|--------------|-----------------------------------|
-| < 30 minutes | 0 points                          |
-| ≥ 30 minutes | 5 points                          |
-| ≥ 1 hour     | 7 points                          |
-| ≥ 2 hours    | 8 points + 1 point per hour after |
+- **Base points**: 1 point per full hour of active time (configurable via `base_points_per_hour`).
+- **Threshold bonuses** (configurable via `point_thresholds`):
 
-#### Bonus Points 
+| Active Time  | Bonus Points |
+|--------------|-------------|
+| ≥ 30 minutes | +5          |
+| ≥ 1 hour     | +2          |
+| ≥ 2 hours    | +1          |
 
-An additional 5 points are awarded to the user for each 7 consecutive days where the user is active (i.e. has received more than 0 points). The consecutive days cannot overlap, so at most 5 bonus points per week can be awarded to a user.
+With the defaults, a user active for exactly 1 hour earns 1 (base) + 5 (30 min threshold) + 2 (60 min threshold) = **8 points**.
+
+#### Streak Bonus
+
+An additional 5 bonus points (configurable) are awarded for every 7 consecutive days (configurable) where the user earned more than 0 points. Consecutive-day intervals do not overlap.
 
 ### Team Points
 
-The team points for a given day are calculated by summing the points of all users in the team for that day.
+The team points for a given day are the sum of all users' points in the team for that day.
 
-#### Bonus Points
+#### Team Bonus
 
-A team is awareded 5 additional points for a given day if all users in the team are active for that day (i.e. have received more than 0 points).
+A team is awarded 5 additional points (configurable) for a given day if **all** users in the team earned more than 0 points that day.
 
 ## Configuration
 
-Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and pass it with `--config` every time you run the tool (both from source and when using the executable).
+Scoring and tracking options are set during **Configure challenge** (initialization) and stored in the database with the challenge. There is no config file; run the tool and choose "Configure challenge" to set or change:
 
-1. Copy [config.example.yaml](./config.example.yaml) to `config.yaml`.
-2. Edit `config.yaml` to set scoring rules, daily cap, and Strava rate limiting.
-3. Run the tool with: `tally --config config.yaml` (or `tally --config /path/to/your/config.yaml`).
-
-| Key | Description |
-|-----|-------------|
-| `max_daily_active_seconds` | Max active seconds per person per day that count for points. Omit or set to `null` to disable the cap. Example: `21600` (6 hours). |
-| `base_points_per_hour` | Base points per full hour of active time. |
-| `point_thresholds` | List of `{minutes, points}` for bonus points at each threshold (e.g. 30 min → 5 pts). |
-| `user_streak_bonus_points` | Bonus points for each completed streak interval. |
-| `user_streak_interval_days` | Consecutive days required for a streak bonus. |
-| `team_bonus_points` | Bonus points when all team members are active that day. |
-| `strava_request_interval_seconds` | Delay between Strava API requests (rate limiting). |
+| Option | Description |
+|--------|-------------|
+| Max daily active seconds | Cap on active seconds per person per day that count for points. Enter 0 for no cap (e.g. 21600 = 6 hours). |
+| Base points per hour | Base points per full hour of active time. |
+| Point thresholds | Bonus points at time thresholds (e.g. 30 min → 5 pts); defined in code, not prompted. |
+| User streak bonus / interval | Bonus points for each completed streak of consecutive active days, and the number of days in that interval. |
+| Team bonus points | Bonus when all team members are active that day. |
+| Strava request interval | Delay in seconds between Strava API requests (rate limiting). |
 
 ## Installation
 
@@ -51,11 +56,10 @@ Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and
 2. Download the zipped executable under the Assets section.
     1. MacOS: click on the `tally-macos-<version>.zip` file
     2. Windows: click on the `tally-windows-<version>.zip` file
-3. Unzip the contents `.zip` file into a folder.
-4. Copy `config.example.yaml` to `config.yaml` in the same folder (or elsewhere) and edit as needed.
-5. Run the executable with a path to your config file, for example:
-   - MacOS/Linux: `./tally --config config.yaml`
-   - Windows: `tally.exe --config config.yaml`
+3. Unzip the contents into a folder.
+4. Run the executable:
+   - MacOS/Linux: `./tally`
+   - Windows: `tally.exe`
 
 ## How to use
 
@@ -70,7 +74,7 @@ Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and
 | Team 2    | 234954  | Jane Doe  | https://www.strava.com/athletes/32543 |
 
 5. Download the spreadsheet as a CSV file.
-6. Run `tally --config config.yaml` to start the tool (use the path to your config file).
+6. Run `tally` to start the tool.
 7. When prompted, select the `Configure challenge` option to configure a new challenge.
 
 ```
@@ -84,14 +88,14 @@ Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and
    Exit
 ```
 
-8. Enter the name, start date and time zone for the challenge according to the prompts.
+8. Enter the name, start date, time zone, and scoring/tracking options for the challenge according to the prompts. Scoring options include the daily active time cap, base points per hour, streak bonus, team bonus, and Strava request interval (press Enter to accept defaults).
 9. When asked to select a user list, choose the CSV file that was downloaded in the previous step. Ensure that the selected CSV file is filled correctly. Partially filled rows will be skipped.
-10. Next, select the `Track activities` option to track new activities since the start of the challenge. It is recommended to run this command every week since activities older than 2 weeks may not be displayed in the club activity feed. Note that the number of saved activities may be less than the number of activities fetched from Strava as some activities may have occurred before the start of the challenge.
+10. Next, select the `Track activities` option to track new activities since the start of the challenge. It is recommended to run this command at least once a week since activities older than about 2 weeks may no longer appear in the Strava club feed. Each run also **reconciles** the last 5 days: activities that were updated on Strava are overwritten in the database, and activities that were deleted on Strava are removed from the database.
 11. After activities have been tracked, select the `Calculate scores` option to calculate the team scores for the challenge. When prompted for the scoring end date, it is recommended to use yesterday's date since the scoring for today may be incomplete.
 
 ### Reviewing and Updating Activities
 
-1. To view the list of tracked activities for all users, run `tally --config config.yaml` and select the `Export activity data` option.
+1. To view the list of tracked activities for all users, run `tally` and select the `Export activity data` option.
 2. Upload the exported CSV file to a shared spreadsheet to users can review the activities.
 3. Create a form to allow users to submit updates to their activities. The form should contain fields for the columns `link`, `user_link`, `title`, `workout_type`, `date`, and `active_time`. Users should copy over values from the exported activity list while filling the form. Note that date must be in the format `YYYY-MM-DD` and active time must be in the format similar to `1h 15m` or `45m`.
 4. When activity updates have been submitted, the form should output a spreadsheet similar to the following:
@@ -102,7 +106,7 @@ Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and
 | https://www.strava.com/activities/534834912 | https://www.strava.com/athletes/45343 | Night Run | Run | 2025-07-02 | 45m |
 
 5. Download the spreadsheet as a CSV file.
-6. Run `tally --config config.yaml` to start the tool.
+6. Run `tally` to start the tool.
 7. When prompted, select the `Import activity data` option to import the activity updates.
 8. When prompted, select the CSV file that was downloaded in the previous step.
 
@@ -131,7 +135,7 @@ Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and
 4. Install the dependencies with `pip install -r requirements.txt`
 5. Create an [editable install](https://setuptools.pypa.io/en/latest/userguide/development_mode.html) of the package with `pip install -e .`
 6. Install [pre-commit](https://pre-commit.com/) hooks with `pre-commit install`
-7. Run the tool with `python -m tally --config config.yaml` (create `config.yaml` from `config.example.yaml` if needed)
+7. Run the tool with `python -m tally`
 
 ### Installing from Source
 
@@ -140,7 +144,7 @@ Tally has **no compiled-in defaults**. You must provide a `config.yaml` file and
     1. MacOS: Run `chmod +x scripts/install.sh && scripts/install.sh`
     2. Windows: Run `scripts\install.ps1`
         1. If you get an error `install.ps1 cannot be loaded because running scripts is disabled on this system`, run a PowerShell terminal as an administrator and enter `Set-ExecutionPolicy RemoteSigned`
-3. Run `tally --config config.yaml` to start the tool (copy and edit `config.example.yaml` to create `config.yaml`)
+3. Run `tally` to start the tool
 
 ### Building an Executable
 
@@ -169,27 +173,26 @@ $ python -m pytest <path_to_test_file>::<test_class>::<test_method>
 
 ```
 tally/
-├── config.example.yaml                  # Example config; copy to config.yaml and pass with --config
 ├── src/
-│   ├── tally/
-│   │   ├── config.py                    # Loads configuration from config.yaml (no compiled defaults)
-│   │   ├── actions/                     # Each subdirectory represents a different operation performed by the tool
-│   │   │   ├── export/
-│   │   │   ├── initialize/
-│   │   │   ├── load/
-│   │   │   ├── reset/
-│   │   │   ├── score/
-│   │   │   │   ├── point_system.py      # Rules for calculating user and team points
-│   │   │   ├── track/
-│   │   ├── models/                      # Database ORM and schema validation models
-│   │   ├── services/
-│   │   │   ├── db.py                    # Database connection and operations
-│   │   │   ├── strava.py                # Connects with Strava to fetch user activities
-│   │   ├── utils/                       # Common helper functions
-│   │   ├── cli.py                       # Entry point for the command line tool
-│   ├── tests/                           # Unit tests for the tool
-│   ├── scripts/                         # Automate the process of installing the command line tool
-│   ├── templates/                       # Defines the expected file format for input files to the command line tool
-│   ├── data/                            # Database storage for user, team and activity data
-│   ├── logs/                            # Debug logs for each execution of the tool
+│   └── tally/
+│       ├── cli.py                       # Entry point for the command line tool
+│       ├── config.py                    # Runtime config applied from DB challenge (apply_challenge_config)
+│       ├── actions/                     # Each subdirectory represents a different operation
+│       │   ├── export/
+│       │   ├── initialize/
+│       │   ├── load/
+│       │   ├── reset/
+│       │   ├── score/
+│       │   │   └── point_system.py      # Rules for calculating user and team points
+│       │   └── track/
+│       ├── models/                      # Database ORM and schema validation models
+│       ├── services/
+│       │   ├── db.py                    # Database connection and operations
+│       │   └── strava.py               # Connects with Strava to fetch user activities
+│       └── utils/                       # Common helper functions
+├── tests/                               # Unit tests
+├── scripts/                             # Install and build scripts
+├── templates/                           # Expected file formats for input files
+├── data/                                # Database storage (created at runtime)
+└── logs/                                # Debug logs (created at runtime)
 ```

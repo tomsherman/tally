@@ -1,13 +1,9 @@
-# Copy this file to config.yaml and adjust as needed.
-# When running the executable, pass: tally --config /path/to/config.yaml
+# Reference only: these options are no longer read from a file.
+# They are set during "Configure challenge" and stored in the database.
+# This file matches the structure used in tests/tally/fixtures/config.yaml.
 
-# Maximum active seconds credited per person per day. Omit or set to null to disable.
 max_daily_active_seconds: 21600  # 6 hours
-
-# Base points per full hour of active time
 base_points_per_hour: 1
-
-# Bonus points at each time threshold (minutes, points)
 point_thresholds:
   - minutes: 30
     points: 5
@@ -15,13 +11,7 @@ point_thresholds:
     points: 2
   - minutes: 120
     points: 1
-
-# User streak: bonus points for every N consecutive days with at least 1 point
 user_streak_bonus_points: 5
 user_streak_interval_days: 7
-
-# Team bonus when all members earn at least 1 point that day
 team_bonus_points: 5
-
-# Seconds between Strava API requests (rate limiting)
 strava_request_interval_seconds: 5

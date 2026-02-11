@@ -56,6 +56,19 @@ def create_users(user_list: List[UserRow]) -> List[str]:
     return list(user_ids)
 
 
+def _int_prompt(message: str, default: int, existing: int | None) -> int | None:
+    raw = questionary.text(
+        message,
+        default=str(existing if existing is not None else default),
+    ).ask()
+    if raw is None or raw.strip() == "":
+        return default if existing is None else existing
+    try:
+        return int(raw.strip())
+    except ValueError:
+        return default if existing is None else existing
+
+
 def prompt_config(existing_config: Config | None) -> Config | None:
     challenge_name = questionary.text(
         "Enter a name for the challenge",
@@ -79,11 +92,76 @@ def prompt_config(existing_config: Config | None) -> Config | None:
     if not time_zone:
         return None
 
-    return Config(
-        challenge_name=challenge_name,
-        start_date=start_date,
-        time_zone=time_zone,
+    print("Scoring and tracking (press Enter for defaults):")
+    max_daily = _int_prompt(
+        "  Max active seconds per person per day (21600 = 6h, 0 = no cap)",
+        21600,
+        (
+            getattr(existing_config, "max_daily_active_seconds", None)
+            if existing_config
+            else None
+        ),
     )
+    base_points = _int_prompt(
+        "  Base points per hour",
+        1,
+        (
+            getattr(existing_config, "base_points_per_hour", None)
+            if existing_config
+            else None
+        ),
+    )
+    streak_bonus = _int_prompt(
+        "  User streak bonus points (every N days)",
+        5,
+        (
+            getattr(existing_config, "user_streak_bonus_points", None)
+            if existing_config
+            else None
+        ),
+    )
+    streak_days = _int_prompt(
+        "  User streak interval (days)",
+        7,
+        (
+            getattr(existing_config, "user_streak_interval_days", None)
+            if existing_config
+            else None
+        ),
+    )
+    team_bonus = _int_prompt(
+        "  Team bonus points (when all active)",
+        5,
+        (
+            getattr(existing_config, "team_bonus_points", None)
+            if existing_config
+            else None
+        ),
+    )
+    strava_interval = _int_prompt(
+        "  Strava request interval (seconds)",
+        5,
+        (
+            getattr(existing_config, "strava_request_interval_seconds", None)
+            if existing_config
+            else None
+        ),
+    )
+
+    kwargs = {
+        "challenge_name": challenge_name,
+        "start_date": start_date,
+        "time_zone": time_zone,
+        "max_daily_active_seconds": None if max_daily == 0 else max_daily,
+        "base_points_per_hour": base_points,
+        "user_streak_bonus_points": streak_bonus,
+        "user_streak_interval_days": streak_days,
+        "team_bonus_points": team_bonus,
+        "strava_request_interval_seconds": strava_interval,
+    }
+    if existing_config:
+        kwargs["point_thresholds"] = existing_config.point_thresholds
+    return Config(**kwargs)
 
 
 def initialize():

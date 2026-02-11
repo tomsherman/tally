@@ -2,6 +2,7 @@ from typing import List
 import questionary
 import datetime
 
+import tally.config
 from tally.models.db import Config, Team, User, Activity
 from tally.actions.score.score_config import ScoreConfig
 from tally.actions.score.save_score import save_team_cumulative_score_to_csv
@@ -46,6 +47,7 @@ def score():
         )
         return
 
+    tally.config.apply_challenge_config(config)
     score_config = prompt_score_config(config)
     if not score_config:
         print("Score config is incomplete, cancelling operation")

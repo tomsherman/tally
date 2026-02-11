@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timezone
 
-from tally.actions.track.activity import get_activities
+from tally.actions.track.activity import get_activities, map_feed_activity_to_activity
 from tally.models.validation.club_feed import ActivityStatsEntry
 from tally.services.strava import StravaService
 from tests.tally.mocks.mock_team import create_team
@@ -239,3 +239,27 @@ class TestGetActivities:
         assert mock_strava_service.get_club_feed.call_count == 2
         mock_strava_service.get_club_feed.assert_any_call("team1", None)
         mock_strava_service.get_club_feed.assert_any_call("team1", cursor_page1)
+
+
+class TestMapFeedActivityToActivity:
+    def test_moving_seconds_zero_preserved(self):
+        """moving_seconds == 0 should be stored as 0, not treated as missing/None."""
+        zero_time_stats = [
+            ActivityStatsEntry(
+                key="moving_time",
+                value="0<abbr class='unit' title='minute'>m</abbr> 0<abbr class='unit' title='second'>s</abbr>",
+            )
+        ]
+        feed_activity = create_feed_activity(
+            id="zero-moving",
+            activity_name="Quick Stop",
+            activity_type="Run",
+            elapsed_time=60,
+            start_date="2024-06-01T12:00:00Z",
+            stats=zero_time_stats,
+        )
+
+        result = map_feed_activity_to_activity(feed_activity)
+
+        assert result.moving_seconds == 0
+        assert result.moving_seconds is not None

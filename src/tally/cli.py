@@ -1,12 +1,9 @@
-import argparse
 import logging
-import sys
 from pathlib import Path
 import traceback
 
 import questionary
 
-from tally.config import load_from_file
 from tally.actions.initialize.initialize import initialize
 from tally.actions.reset.reset import reset
 from tally.actions.track.track import track
@@ -60,36 +57,7 @@ def prompt_exit_after_failure(action: str) -> bool:
     ).ask()
 
 
-def _parse_args():
-    parser = argparse.ArgumentParser(
-        description="Tally – team fitness challenge score tracker",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Example: tally --config config.yaml",
-    )
-    parser.add_argument(
-        "--config",
-        required=getattr(sys, "frozen", False),
-        metavar="PATH",
-        help="Path to config.yaml (required when running the executable)",
-    )
-    return parser.parse_args()
-
-
 def app():
-    args = _parse_args()
-    if not args.config:
-        # Not frozen: still require --config so no compiled defaults are used
-        print("Error: --config PATH is required. Example: tally --config config.yaml")
-        sys.exit(1)
-    try:
-        load_from_file(args.config)
-    except FileNotFoundError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
     configure_logging()
     logger = logging.getLogger(__name__)
 

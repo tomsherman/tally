@@ -282,3 +282,15 @@ class TestGetMovingSecondsFromStats:
         result = get_moving_seconds_from_stats(stats)
         expected = 1 * 3600 + 30  # 1 hour + 30 seconds = 3630 seconds
         assert result == expected
+
+    def test_zero_moving_seconds_returns_zero_not_none(self):
+        """Test that 0m 0s returns 0 (int), not None — so it's not treated as missing."""
+        stats = [
+            ActivityStatsEntry(
+                key="moving_time",
+                value="0<abbr class='unit' title='minute'>m</abbr> 0<abbr class='unit' title='second'>s</abbr>",
+            )
+        ]
+        result = get_moving_seconds_from_stats(stats)
+        assert result == 0
+        assert result is not None

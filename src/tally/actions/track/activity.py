@@ -20,11 +20,22 @@ logger = logging.getLogger(__name__)
 
 def get_moving_seconds_from_stats(stats: List[ActivityStatsEntry]) -> int | None:
     """
-    Checks if the stats string contains any one or more of the following elements:
-    - Seconds: "{{seconds}}<abbr class='unit' title='second'>s</abbr>"
-    - Minutes: "{{minutes}}<abbr class='unit' title='minute'>m</abbr>"
-    - Hours: "{{hours}}<abbr class='unit' title='hour'>h</abbr>"
-    If so, extract the values and convert to seconds.
+    Parse the "Time" stat from a club‑feed activity's stats list.
+
+    The club feed does not distinguish between "moving time" and "elapsed
+    time" — it displays whichever value Strava chose for that activity type
+    under a generic "Time" label rendered as HTML with ``<abbr>`` tags:
+
+        ``30<abbr class='unit' title='minute'>m</abbr>``
+
+    We scan every stat entry for hour / minute / second ``<abbr>`` patterns
+    and return the first match converted to total seconds.  Returns ``None``
+    when no time‑formatted stat is found (e.g. the feed only shows distance,
+    elevation, or pace).
+
+    The returned value is stored as ``moving_seconds`` on the Activity model.
+    See ``MOVING_TIME_ACTIVITY_TYPES`` in ``tally.utils.activity`` for how
+    ``moving_seconds`` vs ``elapsed_seconds`` is chosen at scoring time.
     """
 
     one_minute_in_seconds = 60

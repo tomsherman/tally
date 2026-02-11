@@ -28,3 +28,4 @@ class Config(BaseModel):
     user_streak_interval_days = IntegerField(default=7)
     team_bonus_points = IntegerField(default=5)
     strava_request_interval_seconds = IntegerField(default=5)
+    reconciliation_window_days = IntegerField(default=10)

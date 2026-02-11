@@ -120,6 +120,7 @@ class TestApplyChallengeConfig:
         assert tally.config.USER_STREAK_INTERVAL_DAYS == 7
         assert tally.config.TEAM_BONUS_POINTS == 5
         assert tally.config.STRAVA_REQUEST_INTERVAL_SECONDS == 5
+        assert tally.config.RECONCILIATION_WINDOW_DAYS == 10
 
     def test_all_fields_propagated(self):
         """All fields from the config object are propagated to module globals."""
@@ -131,6 +132,7 @@ class TestApplyChallengeConfig:
             user_streak_interval_days=3,
             team_bonus_points=20,
             strava_request_interval_seconds=2,
+            reconciliation_window_days=7,
         )
 
         apply_challenge_config(cfg)
@@ -142,3 +144,4 @@ class TestApplyChallengeConfig:
         assert tally.config.USER_STREAK_INTERVAL_DAYS == 3
         assert tally.config.TEAM_BONUS_POINTS == 20
         assert tally.config.STRAVA_REQUEST_INTERVAL_SECONDS == 2
+        assert tally.config.RECONCILIATION_WINDOW_DAYS == 7

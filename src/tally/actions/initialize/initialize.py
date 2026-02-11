@@ -152,6 +152,15 @@ def prompt_config(existing_config: Config | None) -> Config | None:
             else None
         ),
     )
+    recon_window = _int_prompt(
+        "  Reconciliation window (days)",
+        10,
+        (
+            getattr(existing_config, "reconciliation_window_days", None)
+            if existing_config
+            else None
+        ),
+    )
 
     kwargs = {
         "challenge_name": challenge_name,
@@ -163,6 +172,7 @@ def prompt_config(existing_config: Config | None) -> Config | None:
         "user_streak_interval_days": streak_days,
         "team_bonus_points": team_bonus,
         "strava_request_interval_seconds": strava_interval,
+        "reconciliation_window_days": recon_window,
     }
     if existing_config:
         kwargs["point_thresholds"] = existing_config.point_thresholds

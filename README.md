@@ -49,6 +49,7 @@ Scoring and tracking options are set during **Configure challenge** (initializat
 | User streak bonus / interval | Bonus points for each completed streak of consecutive active days, and the number of days in that interval. |
 | Team bonus points | Bonus when all team members are active that day. |
 | Strava request interval | Delay in seconds between Strava API requests (rate limiting). |
+| Reconciliation window | Number of days to reconcile when tracking (default: 10). Updated and deleted activities within this window are synced from Strava. |
 
 ## Installation
 
@@ -90,7 +91,7 @@ Scoring and tracking options are set during **Configure challenge** (initializat
 
 8. Enter the name, start date, time zone, and scoring/tracking options for the challenge according to the prompts. Scoring options include the daily active time cap (in minutes), base points per hour, streak bonus, team bonus, and Strava request interval (press Enter to accept defaults).
 9. When asked to select a user list, choose the CSV file that was downloaded in the previous step. Ensure that the selected CSV file is filled correctly. Partially filled rows will be skipped.
-10. Next, select the `Track activities` option to track new activities since the start of the challenge. It is recommended to run this command at least once a week since activities older than about 2 weeks may no longer appear in the Strava club feed. Each run also **reconciles** the last 5 days: activities that were updated on Strava are overwritten in the database, and activities that were deleted on Strava are removed from the database.
+10. Next, select the `Track activities` option to track new activities since the start of the challenge. It is recommended to run this command at least once a week since activities older than about 2 weeks may no longer appear in the Strava club feed. Each run also **reconciles** the configured window (default: 10 days): activities that were updated on Strava are overwritten in the database, and activities that were deleted on Strava are removed from the database.
 11. After activities have been tracked, select the `Calculate scores` option to calculate the team scores for the challenge. When prompted for the scoring end date, it is recommended to use yesterday's date since the scoring for today may be incomplete.
 
 ### Reviewing and Updating Activities

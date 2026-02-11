@@ -11,3 +11,4 @@ user_streak_bonus_points: 5
 user_streak_interval_days: 7
 team_bonus_points: 5
 strava_request_interval_seconds: 5
+reconciliation_window_days: 10

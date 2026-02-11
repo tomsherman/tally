@@ -14,8 +14,6 @@ from tally.services.db import backup_db
 
 logger = logging.getLogger(__name__)
 
-RECONCILIATION_WINDOW_DAYS = 5
-
 
 def track():
     config: Config | None = Config.select().first()
@@ -29,9 +27,10 @@ def track():
     challenge_start_time = get_start_of_day(config.start_date, config.time_zone)
     tz = pytz.timezone(config.time_zone)
     today = datetime.datetime.now(tz).date()
-    # Window: [midnight (today - 5 days), midnight today) in challenge TZ — 5 full days, today excluded
+    # Window: [midnight (today - N days), midnight today) in challenge TZ — N full days, today excluded
     window_start = get_start_of_day(
-        today - datetime.timedelta(days=RECONCILIATION_WINDOW_DAYS), config.time_zone
+        today - datetime.timedelta(days=tally.config.RECONCILIATION_WINDOW_DAYS),
+        config.time_zone,
     )
     window_end = get_start_of_day(today, config.time_zone)
     window_start_utc = window_start.astimezone(pytz.UTC)

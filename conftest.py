@@ -27,6 +27,7 @@ def _load_test_config():
     c.user_streak_interval_days = data["user_streak_interval_days"]
     c.team_bonus_points = data["team_bonus_points"]
     c.strava_request_interval_seconds = data["strava_request_interval_seconds"]
+    c.reconciliation_window_days = data["reconciliation_window_days"]
     return c
 
 

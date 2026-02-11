@@ -12,7 +12,7 @@ Each user's total active seconds per day can be capped (default: 6 hours / 21600
 
 ### User Points
 
-For users, points are calculated based on the (capped) total active time from all activities on a given day.
+For users, points are calculated based on the (capped) total active time from all activities on a given day. When multiple activities overlap in time (e.g. a watch and phone both record the same run), the overlapping period is only counted once.
 
 - **Base points**: 1 point per full hour of active time (configurable via `base_points_per_hour`).
 - **Threshold bonuses** (configurable via `point_thresholds`):

@@ -24,8 +24,8 @@ class Config(BaseModel):
     point_thresholds = TextField(
         default=_DEFAULT_POINT_THRESHOLDS_JSON
     )  # JSON list of {minutes, points}
-    user_streak_bonus_points = IntegerField(default=5)
+    user_streak_bonus_points = IntegerField(default=1)
     user_streak_interval_days = IntegerField(default=7)
-    team_bonus_points = IntegerField(default=5)
+    team_bonus_points = IntegerField(default=1)
     strava_request_interval_seconds = IntegerField(default=5)
     reconciliation_window_days = IntegerField(default=10)

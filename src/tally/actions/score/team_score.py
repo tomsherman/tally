@@ -23,15 +23,16 @@ class TeamDailyScore:
         self.user_scores.append(user_score)
 
     def get_points(self) -> int:
-        points = sum(user_score.points for user_score in self.user_scores)
+        member_count = len(self.users)
+        total_user_points = sum(user_score.points for user_score in self.user_scores)
+        avg_points = int(total_user_points / member_count) if member_count > 0 else 0
 
         active_user_count = len(
             [user_score for user_score in self.user_scores if user_score.points > 0]
         )
-        total_user_count = len(self.users)
-        bonus_points = calculate_team_bonus_points(active_user_count, total_user_count)
+        bonus_points = calculate_team_bonus_points(active_user_count, member_count)
 
-        return points + bonus_points
+        return avg_points + bonus_points
 
     def __str__(self):
         return (

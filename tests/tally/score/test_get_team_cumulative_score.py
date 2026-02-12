@@ -189,14 +189,17 @@ class TestGetTeamCumulativeScore:
         daily_scores = [team1_day1, team2_day1, team3_day1]
         result = get_team_cumulative_score(daily_scores, users)
 
-        # Verify sorting: team2 (30) > team3 (20) > team1 (5)
+        # Verify sorting: team2 (30) > team3 (20) > team1 (2)
+        # team1: avg(5/2)=2, 1 of 2 active -> no bonus = 2
+        # team2: avg(25/1)=25, all active -> +5 bonus = 30
+        # team3: avg(15/1)=15, all active -> +5 bonus = 20
         assert len(result) == 3
         assert result[0].team.id == "team2"
         assert result[0].points == 30  # 25 + 5 bonus
         assert result[1].team.id == "team3"
         assert result[1].points == 20  # 15 + 5 bonus
         assert result[2].team.id == "team1"
-        assert result[2].points == 5  # 5 + 0 bonus (only 1 of 2 users active)
+        assert result[2].points == 2  # avg(5/2) = 2, no bonus
 
     def test_teams_with_equal_points_maintain_stable_sort(
         self, mock_db, init_teams_and_users
@@ -231,14 +234,16 @@ class TestGetTeamCumulativeScore:
         daily_scores = [team1_day1, team2_day1]
         result = get_team_cumulative_score(daily_scores, users)
 
-        # Verify results: team2 (15) > team1 (10) > team3 (0)
-        assert len(result) == 3  # team3 will have 0 points
+        # team1: avg(10/2)=5, 1 of 2 active -> no bonus = 5
+        # team2: avg(10/1)=10, all active -> +5 bonus = 15
+        # team3: no scores -> 0
+        # Sort: team2 (15), team1 (5), team3 (0)
+        assert len(result) == 3
 
-        # Sort should be: team2 (15), team1 (10), team3 (0)
         assert result[0].team.id == "team2"
         assert result[0].points == 15  # 10 + 5 bonus
         assert result[1].team.id == "team1"
-        assert result[1].points == 10  # 10 + 0 bonus
+        assert result[1].points == 5  # avg(10/2) = 5, no bonus
         assert result[2].team.id == "team3"
         assert result[2].points == 0
 
@@ -256,15 +261,18 @@ class TestGetTeamCumulativeScore:
 
         users = [user1, user2, user3]
 
-        # Team1: 1 of 2 users active (10 pts) -> 10 total, no bonus
+        # Team1: 2 of 2 users active (5 pts each) -> avg=5, all active -> +5 bonus = 10
         team1_day1 = TeamDailyScore(
             team=team1, date=date(2023, 1, 15), users=[user1, user2]
         )
         team1_day1.add_user_score(
-            UserDailyScore(user=user1, date=date(2023, 1, 15), points=10)
+            UserDailyScore(user=user1, date=date(2023, 1, 15), points=5)
+        )
+        team1_day1.add_user_score(
+            UserDailyScore(user=user2, date=date(2023, 1, 15), points=5)
         )
 
-        # Team2: 1 of 1 user active (5 pts) -> 5 + 5 bonus = 10 total
+        # Team2: 1 of 1 user active (5 pts) -> avg=5, all active -> +5 bonus = 10
         team2_day1 = TeamDailyScore(team=team2, date=date(2023, 1, 15), users=[user3])
         team2_day1.add_user_score(
             UserDailyScore(user=user3, date=date(2023, 1, 15), points=5)
@@ -273,7 +281,7 @@ class TestGetTeamCumulativeScore:
         daily_scores = [team1_day1, team2_day1]
         result = get_team_cumulative_score(daily_scores, users)
 
-        # Only team1 and team2 are in users, so result has 2 teams (both 10 pts)
+        # Both teams score 10 (avg 5 + bonus 5)
         assert len(result) == 2
         assert result[0].points == 10
         assert result[1].points == 10

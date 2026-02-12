@@ -31,11 +31,11 @@ An additional 5 bonus points (configurable) are awarded for every 7 consecutive 
 
 ### Team Points
 
-The team points for a given day are the sum of all users' points in the team for that day.
+The team points for a given day are the **average** of all members' individual points (including streak bonuses), so teams of different sizes compete fairly.
 
 #### Team Bonus
 
-A team is awarded 5 additional points (configurable) for a given day if **all** users in the team earned more than 0 points that day.
+A team is awarded 5 additional points (configurable) on top of the average for a given day if **all** members earned more than 0 points that day.
 
 ## Configuration
 

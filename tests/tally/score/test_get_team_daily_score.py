@@ -247,9 +247,9 @@ class TestGetTeamDailyScore:
 
         # Test the aggregation - both users active = bonus points
         total_points = team_score.get_points()
-        base_points = 10 + 15  # Sum of user points
+        avg_points = int((10 + 15) / 2)  # Average of user points = 12
         bonus_points = 5  # All users active = 5 bonus points
-        expected_total = base_points + bonus_points
+        expected_total = avg_points + bonus_points  # 12 + 5 = 17
 
         assert (
             total_points == expected_total
@@ -275,4 +275,4 @@ class TestGetTeamDailyScore:
         team_score = result[0]
         # Only 1 user with points > 0, so no team bonus
         total_points = team_score.get_points()
-        assert total_points == 10  # 10 + 0, no bonus
+        assert total_points == 5  # avg(10, 0) = 5, no bonus

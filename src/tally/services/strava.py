@@ -62,7 +62,7 @@ class StravaService:
         url_with_params = f"{url}?{formatted_params}" if formatted_params else url
 
         self.driver.get(url_with_params)
-        return json.loads(self.driver.find_element(By.TAG_NAME, "pre").text)
+        return json.loads(self.driver.execute_script("return document.body.innerText"))
 
     def login(self) -> None:
         if self.is_logged_in:

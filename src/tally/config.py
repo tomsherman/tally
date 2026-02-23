@@ -31,7 +31,7 @@ def apply_challenge_config(config) -> None:
         POINT_THRESHOLDS = raw or []
     USER_STREAK_BONUS_POINTS = getattr(config, "user_streak_bonus_points", 5)
     USER_STREAK_INTERVAL_DAYS = getattr(config, "user_streak_interval_days", 7)
-    TEAM_BONUS_POINTS = getattr(config, "team_bonus_points", 5)
+    TEAM_BONUS_POINTS = getattr(config, "team_bonus_points", 1)
     STRAVA_REQUEST_INTERVAL_SECONDS = getattr(
         config, "strava_request_interval_seconds", 5
     )

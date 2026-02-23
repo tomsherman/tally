@@ -13,5 +13,5 @@ point_thresholds:
     points: 1
 user_streak_bonus_points: 5
 user_streak_interval_days: 7
-team_bonus_points: 5
+team_bonus_points: 1
 strava_request_interval_seconds: 5

@@ -22,7 +22,7 @@ def _migrate_config_if_needed():
         ),
         ("user_streak_bonus_points", "INTEGER DEFAULT 5"),
         ("user_streak_interval_days", "INTEGER DEFAULT 7"),
-        ("team_bonus_points", "INTEGER DEFAULT 5"),
+        ("team_bonus_points", "INTEGER DEFAULT 1"),
         ("strava_request_interval_seconds", "INTEGER DEFAULT 5"),
         ("reconciliation_window_days", "INTEGER DEFAULT 10"),
     ]
